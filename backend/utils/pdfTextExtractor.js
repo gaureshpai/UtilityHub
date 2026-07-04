@@ -1,0 +1,42 @@
+const path = require("node:path");
+const { pathToFileURL } = require("node:url");
+
+const extractTextFromPdf = async (pdfBuffer) => {
+	const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+	const standardFontDataUrl = `${
+		pathToFileURL(
+			path.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "standard_fonts"),
+		).href
+	}/`;
+	const loadingTask = pdfjs.getDocument({
+		data: new Uint8Array(pdfBuffer),
+		isEvalSupported: false,
+		standardFontDataUrl,
+	});
+	const pdf = await loadingTask.promise;
+	const pages = [];
+
+	try {
+		for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+			const page = await pdf.getPage(pageNumber);
+			const textContent = await page.getTextContent();
+			const pageText = textContent.items
+				.map((item) => ("str" in item ? item.str : ""))
+				.join(" ")
+				.trim();
+
+			if (pageText) {
+				pages.push(pageText);
+			}
+		}
+
+		return {
+			numpages: pdf.numPages,
+			text: pages.join("\n\n"),
+		};
+	} finally {
+		await pdf.destroy();
+	}
+};
+
+module.exports = { extractTextFromPdf };
