@@ -82,10 +82,17 @@ const createLocalStorageClient = () => ({
 							}
 							throw writeError;
 						}
-						await fs.writeFile(
-							`${localPath}.meta.json`,
-							JSON.stringify({ contentType: options.contentType || "application/octet-stream" }),
-						);
+						try {
+							await fs.writeFile(
+								`${localPath}.meta.json`,
+								JSON.stringify({ contentType: options.contentType || "application/octet-stream" }),
+							);
+						} catch (metaError) {
+							if (!options.upsert) {
+								await fs.rm(localPath, { force: true }).catch(() => {});
+							}
+							throw metaError;
+						}
 
 						return { data: { path: normalized }, error: null };
 					} catch (error) {
@@ -180,7 +187,10 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 if (!supabase) {
-	if (process.env.NODE_ENV === "production" && process.env.ENABLE_LOCAL_STORAGE_FALLBACK !== "true") {
+	if (
+		process.env.NODE_ENV === "production" &&
+		process.env.ENABLE_LOCAL_STORAGE_FALLBACK !== "true"
+	) {
 		throw new Error("Supabase is not initialized; refusing local storage fallback in production.");
 	}
 	console.warn("Using local file storage fallback for generated files.");

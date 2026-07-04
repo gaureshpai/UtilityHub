@@ -250,23 +250,40 @@ export async function pdfToExcel(inputFile: string, outputPath: string): Promise
 async function extractPdfText(inputFile: string): Promise<string> {
 	const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 	const { pathToFileURL } = requireFromModule("node:url");
-	const standardFontDataUrl = `${pathToFileURL(
-		path.join(path.dirname(requireFromModule.resolve("pdfjs-dist/package.json")), "standard_fonts")
-	).href}/`;
+	const standardFontDataUrl = `${
+		pathToFileURL(
+			path.join(
+				path.dirname(requireFromModule.resolve("pdfjs-dist/package.json")),
+				"standard_fonts",
+			),
+		).href
+	}/`;
 	const loadingTask = pdfjs.getDocument({
 		data: new Uint8Array(await readFile(path.resolve(inputFile))),
 		isEvalSupported: false,
 		standardFontDataUrl,
 	});
-	const pdf = await loadingTask.promise;
-	const pages: string[] = [];
+
+	let pdf: Awaited<typeof loadingTask.promise>;
+	try {
+		pdf = await loadingTask.promise;
+	} catch (err) {
+		await loadingTask.destroy();
+		throw err;
+	}
 
 	try {
+		const pages: string[] = [];
+
 		for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
 			const page = await pdf.getPage(pageNumber);
 			const textContent = await page.getTextContent();
 			const pageText = textContent.items
-				.map((item) => ("str" in item ? item.str : ""))
+				.map((item) => {
+					if (!("str" in item)) return "";
+					const textItem = item as { str: string; hasEOL?: boolean };
+					return textItem.str + (textItem.hasEOL ? "\n" : "");
+				})
 				.join(" ")
 				.trim();
 

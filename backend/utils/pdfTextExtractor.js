@@ -1,10 +1,13 @@
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const extractTextFromPdf = async (pdfBuffer) => {
 	const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-	const standardFontDataUrl = `${path
-		.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "standard_fonts")
-		.replaceAll(path.sep, "/")}/`;
+	const standardFontDataUrl = `${
+		pathToFileURL(
+			path.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "standard_fonts"),
+		).href
+	}/`;
 	const loadingTask = pdfjs.getDocument({
 		data: new Uint8Array(pdfBuffer),
 		isEvalSupported: false,
