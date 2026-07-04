@@ -1,6 +1,6 @@
 # dkutils-cli package
 
-**Version:** 0.1.1
+**Version:** 0.1.2
 
 `dkutils-cli` is the package-first distribution of this repo. It ships:
 

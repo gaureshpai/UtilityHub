@@ -1,6 +1,6 @@
 # dkutils
 
-**Version:** 2.0.4
+**Version:** 2.0.5
 
 `dkutils` is now centered on the npm package and interactive CLI, with the website and backend kept as supporting surfaces inside the same monorepo.
 

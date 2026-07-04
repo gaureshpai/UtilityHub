@@ -1,6 +1,6 @@
 {
 	"name": "dkutils-cli",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "dkutils interactive CLI and TypeScript utility toolkit for image, PDF, and media workflows.",
 	"type": "module",
 	"license": "ISC",
@@ -14,7 +14,10 @@
 			"default": "./dist/DKUTILS.js"
 		}
 	},
-	"files": ["dist", "README.md"],
+	"files": [
+		"dist",
+		"README.md"
+	],
 	"engines": {
 		"node": ">=20.16.0 || >=22.3.0"
 	},
